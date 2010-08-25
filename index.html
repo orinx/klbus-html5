@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=320" />
+
+	<title>Keelung Bus Information</title>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+	<script>
+var stopInfo=new Array;
+var routeName=new Array;
+var myPos;
+
+if (typeof(String.prototype.toRad) === "undefined") {
+	Number.prototype.toRad = function() {
+		return this * Math.PI / 180;
+	}
+}
+
+function sortGeopositionLength(a, b){
+	return a.length-b.length;
+}
+
+function Geoposition(lon, lat, name, id, accuracy){
+	this.lon=lon;
+	this.lat=lat;
+	this.accuracy=accuracy;
+	this.name=name;
+	this.id=id;
+}
+
+Geoposition.prototype.lengthTo = function(rhs){
+// from http://www.movable-type.co.uk/scripts/latlong.html. CC-By 3.0
+	var R = 6378162;
+	var lat1 = this.lat.toRad(), lon1 = this.lon.toRad();
+	var lat2 = rhs.lat.toRad(), lon2 = rhs.lon.toRad();
+	var dLat = lat2 - lat1;
+	var dLon = lon2 - lon1;
+	
+	var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+	        Math.cos(lat1) * Math.cos(lat2) * 
+	        Math.sin(dLon/2) * Math.sin(dLon/2);
+	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+	var d = R * c;
+	return d;
+}
+
+Geoposition.prototype.lengthsTo = function(stops){
+	var proccedStops=new Array;
+	for(var key in stops)
+	{
+		var stop=stopInfo[key];
+		stop.length=this.lengthTo(stop);
+		proccedStops.push(stop);
+	}
+	proccedStops.sort(sortGeopositionLength);
+	return proccedStops;
+}
+
+function getNearbyStations(){
+	stopInfo=myPos.lengthsTo(stopInfo);
+	$("#nearbyStops ul").empty();
+	var hasStation=0;
+
+	for(var key in stopInfo){
+		var stop=stopInfo[key];
+		if(stop.length>myPos.accuracy && hasStation>=5) break;
+		$('<li/>').text(stop.name).bind('click', {id:stop.id}, displayStatus).appendTo("#nearbyStops ul");
+		hasStation+=1;
+	}
+}
+
+function chooseAnotherStop(){
+	$("#busStatus").hide();
+	$("#nearbyStops").show();
+}
+
+function displayTime(t){
+	var f;
+	if(t<=-1)
+		f="unknown";
+	else if(t==0)
+		f="arriving";
+	else 
+	{
+		f="about "+t+" minute";
+		if(t>1) f=f+"s";
+	}
+	return $("<span/>").addClass("floatRight").text(f);
+}
+
+function displayStatus(event){
+	stopId=event.data.id;
+	$("#nearbyStops").hide();
+	$("#busStatus h2").text($(this).text());
+	$("#busStatus ul").empty();
+	$("#busStatus").show();
+
+	jQuery.getJSON("stops/routes/"+stopId+".json", function(data){
+
+		for(var key in data.routes){
+			$.getJSON('fetchBusInfo.php', {id: data.routes[key], stopId: stopId}, function(data) {
+				
+				for(var key in data[stopId]){
+					$('<li/>').text(data.id+" — "+routeName[key]+": ").append(displayTime(data[stopId][key])).appendTo("#busStatus ul");
+				}
+			});
+		}
+
+
+	});
+
+}
+
+function stopsInfoGet(data){
+	for(var key in data.stops)
+	{
+		info=data.stops[key];
+		stopInfo.push(new Geoposition(info.lon, info.lat, info.name, info.id, 0));
+	}
+	routeName=data.routes;
+
+	$("#downloadStopsInfo").hide();
+	$("#geolocationStatus").show();
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(locationGet, locationFailed);
+	} else {
+		$("#geolocationStatus h2").text('Your device does not support HTML5 geolocation.');
+	}
+}
+
+function locationGet(position) {
+	myPos=new Geoposition(position.coords.longitude, position.coords.latitude, "My position", 0, position.coords.accuracy);
+	$("#coords").text(myPos.lon + ", " + mypos.lat);
+	$("#coordsAccuracy").text(myPos.accuracy);
+	$("#geolocationInfo").show();
+	$("#geolocationStatus").hide();
+	$("#nearbyStops").show();
+	getNearbyStations();
+}
+ 
+function locationFailed(msg) {
+	$("#geolocationStatus h2").text('Failed to fetch your location.');
+}
+ 
+$(window).load(function(){
+	$("#downloadStopsInfo").show();
+
+	jQuery.getJSON("stops/info.json", stopsInfoGet);
+});
+	</script>
+
+	<style>
+		html{width: 320px; font-size: 12pt; margin: 0 auto;}
+		h1, h2{font-size: 1em;}
+		section article{display: none;}
+
+		html{background:#ccc; color: #666;}
+		header{text-align: center; padding: 5px 0; border-bottom: 2px solid #999;}
+		h2{padding: 5px; text-align: center;}
+		h1, h2{text-shadow: 0 1px 1px rgba(255,255,255,0.8);}
+		section ul{background:#fff; margin: 5px; padding: 0;-webkit-box-shadow: 0 0 8px rgba(0,0,0,0.3); border-radius: 5px; }
+		section ul li{margin:0; padding: 10px; border-bottom: 1px solid #ccc; list-style: none;}
+		#nearbyStops ul li{cursor:pointer;}
+		section a{display: block; background:#fff; margin: 5px; padding: 10px; -webkit-box-shadow: 0 0 8px rgba(0,0,0,0.3); border-radius: 5px; color: #666; cursor: pointer;}
+		span.floatRight{ display: block; text-align: right; }
+		li:last-child{border-bottom: none; }
+		footer{font-size: 8pt;}
+		#geolocationInfo{display: none;}
+		footer a{color: #555; text-decoration: none;}
+		footer a:hover{color: #555; text-decoration: underline;}
+	</style>
+
+</head>
+<body>
+	<header>
+		<h1>Keelung Bus Information</h1>
+	</header>
+
+	<section>
+
+		<article id="downloadStopsInfo">
+			<h2>Downloading files…</h2>
+		</article>
+
+		<article id="geolocationStatus">
+			<h2>Fetching geolocation status…</h2>
+		</article>
+
+		<article id="nearbyStops">
+			<h2>Choose a stop</h2>
+			<ul>
+			</ul>
+		</article>
+
+		<article id="busStatus">
+			<h2>Bus status</h2>
+			<ul>
+			</ul>
+			<a onclick="chooseAnotherStop()">Back</a>
+		</article>
+
+	</section>
+
+	<footer>
+		<p id="geolocationInfo">your location: <span id="coords"></span>, accuracy: <span id="coordsAccuracy"></span></p>
+		<p><a href="http://m-wei.net">medicalwei</a> / data fetched from <a href="http://ebus.klcba.gov.tw">ebus.klcba.gov.tw</a>. / experimental html5 geolocation functionality / <a href="http://github.com/medicalwei/klbus-html5">fork me on github</a></p>
+	</footer>
+</body>
+</html>
+
