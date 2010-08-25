@@ -131,7 +131,7 @@ function stopsInfoGet(data){
 
 function locationGet(position) {
 	myPos=new Geoposition(position.coords.longitude, position.coords.latitude, "My position", 0, position.coords.accuracy);
-	$("#coords").text(myPos.lon + ", " + mypos.lat);
+	$("#coords").text(myPos.lon + ", " + myPos.lat);
 	$("#coordsAccuracy").text(myPos.accuracy);
 	$("#geolocationInfo").show();
 	$("#geolocationStatus").hide();
