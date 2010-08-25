@@ -83,10 +83,9 @@ function displayTime(t){
 		f="arriving";
 	else 
 	{
-		f="about "+t+" minute";
-		if(t>1) f=f+"s";
+		f=t+" min.";
 	}
-	return $("<span/>").addClass("floatRight").text(f);
+	return $("<div/>").addClass("floatRight").text(f);
 }
 
 function displayStatus(event){
@@ -102,7 +101,8 @@ function displayStatus(event){
 			$.getJSON('fetchBusInfo.php', {id: data.routes[key], stopId: stopId}, function(data) {
 				
 				for(var key in data[stopId]){
-					$('<li/>').text(data.id+" — "+routeName[key]+": ").append(displayTime(data[stopId][key])).appendTo("#busStatus ul");
+					var routeIdTag = $('<span/>').addClass('routeId').text(data.id);
+					$('<li/>').text(routeName[key]).prepend(routeIdTag).append(displayTime(data[stopId][key])).appendTo("#busStatus ul");
 				}
 			});
 		}
@@ -163,7 +163,8 @@ $(window).load(function(){
 		section ul li{margin:0; padding: 10px; border-bottom: 1px solid #ccc; list-style: none;}
 		#nearbyStops ul li{cursor:pointer;}
 		section a{display: block; background:#fff; margin: 5px; padding: 10px; -webkit-box-shadow: 0 0 8px rgba(0,0,0,0.3); border-radius: 5px; color: #666; cursor: pointer;}
-		span.floatRight{ display: block; text-align: right; }
+		#busStatus span.routeId{font-weight:700; float: left; font-size: 2em; margin-right: 10px;}
+		div.floatRight{ text-align: right; }
 		li:last-child{border-bottom: none; }
 		footer{font-size: 8pt;}
 		#geolocationInfo{display: none;}
