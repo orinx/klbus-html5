@@ -1,0 +1,14 @@
+klbus-html5
+===========
+
+:Author: Medical-Wei
+:Date: 2010-08-25
+
+display Keelung (Taiwan) bus information with HTML5 geoposition
+
+Files
+-----
+
+index.html:: javascript client
+fetchBusInfo.php:: get the route status from ebus.klcba.gov.tw and feedbacks json files
+tools/routeProcess.sh:: data collection script for collecting bus stops informaion from ebus.klcba.gov.tw
