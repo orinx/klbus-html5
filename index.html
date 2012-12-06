@@ -36,9 +36,9 @@ Geoposition.prototype.lengthTo = function(rhs){
 	var lat2 = rhs.lat.toRad(), lon2 = rhs.lon.toRad();
 	var dLat = lat2 - lat1;
 	var dLon = lon2 - lon1;
-	
+
 	var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-	        Math.cos(lat1) * Math.cos(lat2) * 
+	        Math.cos(lat1) * Math.cos(lat2) *
 	        Math.sin(dLon/2) * Math.sin(dLon/2);
 	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 	var d = R * c;
@@ -81,7 +81,7 @@ function displayTime(t){
 		f="unknown";
 	else if(t==0)
 		f="arriving";
-	else 
+	else
 	{
 		f=t+" min.";
 	}
@@ -99,7 +99,7 @@ function displayStatus(event){
 
 		for(var key in data.routes){
 			$.getJSON('fetchBusInfo.php', {id: data.routes[key], stopId: stopId}, function(data) {
-				
+
 				for(var key in data[stopId]){
 					var routeIdTag = $('<span/>').addClass('routeId').text(data.id);
 					$('<li/>').text(routeName[key]).prepend(routeIdTag).append(displayTime(data[stopId][key])).appendTo("#busStatus ul");
@@ -138,11 +138,11 @@ function locationGet(position) {
 	$("#nearbyStops").show();
 	getNearbyStations();
 }
- 
+
 function locationFailed(msg) {
 	$("#geolocationStatus h2").text('Failed to fetch your location.');
 }
- 
+
 $(window).load(function(){
 	$("#downloadStopsInfo").show();
 
@@ -206,7 +206,7 @@ $(window).load(function(){
 
 	<footer>
 		<p id="geolocationInfo">your location: <span id="coords"></span>, <br/>accuracy: <span id="coordsAccuracy"></span>m</p>
-		<p>by <a href="http://m-wei.net">medicalwei</a> / data from <a href="http://ebus.klcba.gov.tw">ebus.klcba.gov.tw</a> <br/><a href="http://dev.w3.org/geo/api/spec-source.html">html5 geolocation</a> / <a href="http://github.com/medicalwei/klbus-html5">fork me on github</a></p>
+		<p>by <a href="http://m-wei.net">medicalwei</a> / data from <a href="http://ebus.klcba.gov.tw">ebus.klcba.gov.tw</a> <br/><a href="http://dev.w3.org/geo/api/spec-source.html">html5 geolocation</a> / <a href="http://github.com/orinx/klbus-html5">fork me on github</a></p>
 	</footer>
 </body>
 </html>
